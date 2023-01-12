@@ -1,33 +1,36 @@
 from machine import Pin, PWM
+import time
 # import logicanalyzer
 
 
 class skynetPWM:
-    def __init__(self):
+    def __init__(self, pin=15, inv_pin=16):
         super().__init__()
-        self.pin = 15
-        self.inv_pin = 16
-        self.PWM_PIN_INDEX = 0
-        self.PWM_INV_PIN_INDEX = 1
 
-        # init prev value holders
+        # init pwm pins
+        self.pwm_pin = PWM(Pin(pin))
+        self.pwm_inv_pin = PWM(Pin(inv_pin))
+        time.sleep(2)
+
+        # init previous value holders
         self.prev_freq: float = 0
         self.prev_duty: float = 0
 
+        # track state of output
         self.is_running = False
 
         # 10kHz
         self.INIT_FREQ = 10000
+
         # 50% duty cycle @ 500
-        self.DUTY_CYCLE = 500
+        self.INIT_DUTY = 500
 
-        self.pwm_pin = PWM(Pin(self.pin))
-        self.pwm_inv_pin = PWM(Pin(self.inv_pin))
-
-        # Init freq @ 10kHz
+        # Init waveform generation
+        # Active output at pins
         self.set_freq(self.INIT_FREQ)
-        # 50% duty cycle
+        time.sleep(2)
         self.set_duty()
+        time.sleep(2)
 
         # logicanalyzer.logic_analyzer_start()
 
@@ -54,16 +57,16 @@ class skynetPWM:
     # in order to set more easily
     def duty(self, d):
         if d is None:
-            super().duty_u16()
+            self.pwm_pin.duty_u16()
         if self.new_duty_ok(d):
-            print(65535*d//1000)
-            print(65535*d//100)
-            super().duty_u16(65535*d//1000)
+            ddd = 65535*d//1000
+            self.pwm_pin.duty_u16(ddd)
+            self.pwm_inv_pin.duty_u16(ddd)
 
     # this starts waveform generation
     def set_duty(self, duty=500):
+        self.current_duty = duty
         self.duty(duty)
-        # self.pwm_inv_pin.duty(self.DUTY_CYCLE)
 
     def get_duty(self) -> list(float):
         temp_list = list(float)
@@ -89,3 +92,10 @@ class skynetPWM:
         print(
             'De-initialized and cleaned up PWM Pin: {0}'.format(self.pwn_pin))
         return 1
+
+    def log_pwm_setup_result(self, verbose: bool):
+        if verbose:
+            print('PWM Pins set:\nQ -> {0} @ {1}\nInverse -> {2} @ {3}'.format(
+                self.pwm_pin, self.pwm_pin.freq(), self.pwm_inv_pin, self.pwm_inv_pin.freq()))
+        else:
+            print('PWM setup finished.')
