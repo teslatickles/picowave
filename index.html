@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Square Wave Pico Generator</title>
+</head>
+<style>
+    body {
+        background-color: lightslategray;
+        margin: auto;
+        padding: 25px;
+        overflow: hidden;
+    }
+
+    .custom-padding {
+        padding: 4px;
+    }
+
+    #canvas {
+        background-color: cornflowerblue;
+        border-radius: 5px;
+        box-shadow: 5px 5px 5px 3px;
+    }
+
+    #canvas-title {
+        color: #4b4b4b;
+        font-family: monospace;
+        font-weight: bolder;
+        font-size: 20px;
+    }
+
+    #save-title {
+        color: #4b4b4b;
+        font-family: monospace;
+        font-weight: bolder;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    #title {
+        color: #ff6b6b;
+        font-family: monospace;
+        font-size: 25px;
+        max-width: 50px;
+        margin-top: -20px;
+        cursor: pointer;
+    }
+
+    #transport {
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: bolder;
+    }
+
+    #saves-container {
+        position: relative;
+        border: 4px solid cornflowerblue;
+        border-radius: 5px;
+        background-color: #b2bec3;
+        box-shadow: 5px 5px 5px 5px;
+        max-width: 300px;
+        padding: 10px;
+        min-height: 690px;
+        transform: translate(0px, -740px);
+        z-index: 1;
+    }
+
+    @keyframes peek {
+        0% {
+            transform: translate(0px, -740px);
+        }
+
+        100% {
+            transform: translate(15px, -740px);
+        }
+    }
+
+    @keyframes show {
+        0% {
+            transform: translate(0px, -740px);
+        }
+
+        100% {
+            transform: translate(350px, -740px);
+        }
+    }
+
+    @keyframes hide {
+        0% {
+            transform: translate(350px, -740px);
+        }
+
+        100% {
+            transform: translate(0px, -740px);
+        }
+    }
+
+    ul {
+        list-style-type: none;
+        text-align: justify;
+        /* For Edge */
+        /* text-align-last: justify; */
+        /* text-align-last: center; */
+    }
+
+    li {
+        font-family: monospace;
+        padding: 5px;
+        /* text-align: justify; For Edge */
+        /* text-align-last: center; */
+    }
+
+    button {
+        border-color: cornflowerblue;
+        border-radius: 5px;
+        font-family: serif;
+        font-weight: bolder;
+        background-color: aliceblue;
+        box-shadow: 2px 2px;
+    }
+
+    #reset-btn {
+        background-color: #ff6b6b;
+    }
+
+    label {
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: bolder;
+    }
+
+    #conn-status-icon {
+        height: 25px;
+        transform: translateX(265px);
+    }
+
+    #freq-value {
+        width: 50px;
+        border-radius: 3px;
+        background-color: aliceblue;
+    }
+
+    #duty-value {
+        width: 50px;
+        border-radius: 3px;
+        background-color: aliceblue;
+    }
+
+    #wave-gen {
+        position: relative;
+        border: 4px solid cornflowerblue;
+        border-radius: 5px;
+        background-color: #b2bec3;
+        box-shadow: 5px 5px 5px 5px;
+        max-width: 300px;
+        padding: 10px;
+        z-index: 2;
+    }
+
+    #saves {
+        text-decoration: none;
+    }
+
+    #disconnect-text {
+        color: rebeccapurple;
+        margin-left: 2px;
+    }
+
+    #port-value {
+        color: maroon;
+        margin-left: 16px;
+    }
+
+    #ip-value {
+        color: #4b4b4b;
+        font-weight: bolder;
+        font-family: monospace;
+        margin-left: 30px;
+    }
+
+    .text-input {
+        font-family: monospace;
+        font-weight: bold;
+    }
+
+    #percent-label {
+        font-family: monospace;
+        font-weight: bolder;
+        margin-left: 5px;
+        font-size: 17px;
+    }
+
+    #hertz-label {
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 15px;
+    }
+</style>
+
+<body>
+    <form id="wave-gen">
+        <div>
+            <img src="./net_disconnect.png" alt="" id="conn-status-icon">
+            <!-- <p id="hw-status">Disconnected</p> -->
+        </div>
+        <h2 id="title" onclick="toggleSavedParams()">Wave Generator</h2>
+        <hr>
+        <div>
+            <label for="frequency">Frequency</label>
+            <div class="custom-padding"></div>
+            <input type="range" id="frequency" name="frequency" min="10000" max="100000" step="1" value="55000">
+            <div class="custom-padding"></div>
+            <input type="text" name="freq-value" id="freq-value" class="text-input" /> <span id="hertz-label">Hz</span>
+            <div class="custom-padding"></div>
+            <button type="submit" id="minusTen-btn">-10</button>
+            <button type="submit" id="plusTen-btn">+10</button>
+            <!-- <input type="radio" id="hz" name="period-select" value="Hz">
+            <label for="Hz">Hz</label>
+            <input type="radio" id="kHz" name="period-select" value="kHz">
+            <label for="kHz">kHz</label> -->
+            <div class="custom-padding"></div>
+            <button type="submit">Reset</button>
+        </div>
+        <br>
+        <hr>
+        <div>
+            <label for="duty-cycle">Duty Cycle</label>
+            <div class="custom-padding"></div>
+            <input type="range" id="duty-cycle" name="duty-cycle" min="100" max="1000" step="1" value="500">
+            <div class="custom-padding"></div>
+            <input type="text" name="duty-value" id="duty-value" class="text-input" /><span id="percent-label">%</span>
+            <div class="custom-padding"></div>
+            <button type="submit" id="halfduty-btn">=</button>
+            <button type="submit" id="quarterduty-btn">25%</button>
+            <div class="custom-padding"></div>
+            <button type="submit">Reset</button>
+        </div>
+        <div>
+            <br>
+            <hr />
+            <!-- <br> -->
+            <span>
+                <div id="transport">Transport</div>
+                <div class="custom-padding"></div>
+                <button type="submit" id="run-btn">Start</button>
+                <button type="submit" id="stop-btn">Stop</button>
+                <button type="submit" id="save-btn">Save</button>
+                <br>
+                <br>
+                <button type="submit" id="reset-btn">RESET</button>
+            </span>
+        </div>
+        <div>
+            <div class="custom-padding"></div>
+            <!-- <hr> -->
+            <p id="canvas-title">Waveform</p>
+            <canvas id="canvas" width=300 height=100></canvas>
+        </div>
+    </form>
+    <div class="custom-padding"></div>
+    <div id="saves-container" onclick="hideSavedParams()">
+        <p id="save-title">Properties</p>
+        <hr>
+        <ul id="props">
+            <li id="status-title">Status: <span id="disconnect-text">DISCONNECTED</span></li>
+            <li id="ip-title">IP: <span id="ip-value">192.192.19.1</span></li>
+            <li id="port-title">Port: <span id="port-value">80</span></li>
+            <!-- <li id="saves"></li> -->
+        </ul>
+        <br>
+        <hr>
+        <p id="save-title">Saved Parameters</p>
+        <!-- <hr> -->
+        <ul id="saves"></ul>
+    </div>
+</body>
+
+<script>
+    // const baseUrl = `ws://192.168.50.213:5000`;
+    const baseUrl = 'ws://' + location.host;
+
+    const freq_socket = new WebSocket(`${baseUrl}/frequency/update`);
+    const duty_socket = new WebSocket(`${baseUrl}/duty-cycle/update`);
+    const util_socket = new WebSocket(`${baseUrl}/utility`);
+    const save_socket = new WebSocket(`${baseUrl}/save`);
+
+    const connectionStatusIcon = document.getElementById('conn-status-icon');
+    // connectionStatusIcon.src = './wifi.png';
+
+    const startButton = document.getElementById('run-btn');
+    const stopButton = document.getElementById('stop-btn');
+    const resetButton = document.getElementById('reset-btn');
+
+    const minusTenButton = document.getElementById('minusTen-btn');
+    const plusTenButton = document.getElementById('plusTen-btn');
+    const halfdutyButton = document.getElementById('halfduty-btn');
+
+    const saveContainer = document.getElementById("saves-container");
+    const ul = document.getElementById('saves');
+    const saveButton = document.getElementById('save-btn');
+
+    const freqSliderDiv = document.getElementById('frequency');
+    const dutySliderDiv = document.getElementById('duty-cycle');
+
+    const freqValueForm = document.getElementById("freq-value");
+    freqValueForm.value = freqSliderDiv.value;
+
+    var dutyValueForm = document.getElementById('duty-value');
+    dutyValueForm.value = dutySliderDiv.value;
+
+    const mainTitle = document.getElementById("title");
+
+    freqSliderDiv.onchange = event => {
+        freqValueForm.value = event.target.value;
+        freq_socket.send(event.target.value);
+    }
+
+    dutySliderDiv.onchange = event => {
+        dutyValueForm.value = event.target.value;
+        duty_socket.send(event.target.value);
+    }
+
+    freqValueForm.onchange = event => {
+        console.log(event.value);
+        freqSliderDiv.value = freqValueForm.value;
+        freq_socket.send(event.target.value)
+    }
+
+    dutyValueForm.onchange = event => {
+        dutySliderDiv.value = dutyValueForm.value;
+        freq_socket.send(event.target.value)
+    }
+
+    function showSavedParams() {
+        // if (saveContainer.getBoundingClientRect().left)
+        console.log(saveContainer.getBoundingClientRect().left);
+        saveContainer.style.animation = 'show 850ms forwards';
+    }
+
+    function hideSavedParams() {
+        if (saveContainer.getBoundingClientRect().left > 50)
+            saveContainer.style.animation = 'hide 850ms forwards'
+    }
+
+    function _peekSaveContainer(event) {
+        if (saveContainer.getBoundingClientRect().left > 20 && saveContainer.getBoundingClientRect().left < 60)
+            saveContainer.style.animation = 'peek 1400ms forwards';
+    }
+    mainTitle.addEventListener("mouseover", _peekSaveContainer);
+
+    function _unpeekSaveContainer(event) {
+        if (saveContainer.getBoundingClientRect().left < 60 && saveContainer.getBoundingClientRect().left > 35)
+            saveContainer.style.animation = 'peek 2400ms backwards';
+    }
+    mainTitle.addEventListener("mouseleave", _unpeekSaveContainer);
+
+    function toggleSavedParams() {
+        var xPosition = saveContainer.getBoundingClientRect().left;
+        console.log(xPosition);
+        if (xPosition > 200) {
+            hideSavedParams();
+        } else {
+            showSavedParams();
+        }
+    }
+
+    function _decreaseHertzByTen(event) {
+        event.preventDefault();
+        freqSliderDiv.value -= 10;
+        freqValueForm.value = freqSliderDiv.value;
+        freq_socket.send(freqValueForm.value);
+    }
+    minusTenButton.addEventListener('click', _decreaseHertzByTen);
+
+    function _increaseHertzByTen(event) {
+        event.preventDefault();
+        freqSliderDiv.value += 10;
+        console.log(freqSliderDiv.value);
+        freqValueForm.value = freqSliderDiv.value;
+        freq_socket.send(freqValueForm.value);
+    }
+    plusTenButton.addEventListener('click', _increaseHertzByTen);
+
+    function _start(event) {
+        event.preventDefault();
+        util_socket.send('1')
+    }
+    startButton.addEventListener('click', _start);
+
+    function _stop(event) {
+        event.preventDefault();
+        util_socket.send('0')
+    }
+    stopButton.addEventListener('click', _stop);
+
+    function _reset(event) {
+        event.preventDefault();
+        freqSliderDiv.value = 55000;
+        freqValueForm.value = freqSliderDiv.value;
+        dutySliderDiv.value = 500;
+        dutyValueForm.value = dutySliderDiv.value;
+        freq_socket.send(freqValueForm.value);
+        duty_socket.send(dutyValueForm.value);
+    }
+    resetButton.addEventListener('click', _reset);
+
+    const listIndex = 0;
+    function _saveParameters(event) {
+        event.preventDefault();
+        const freq = freqValueForm.value;
+        const duty = dutyValueForm.value;
+        showSavedParams();
+        const paramPacket = `Freq: ${freq} hz Duty: ${duty} %`;
+        let li = document.createElement("li");
+        li.textContent = paramPacket;
+        ul.appendChild(li);
+        console.log(paramPacket);
+        save_socket.send(paramPacket);
+    }
+    saveButton.addEventListener('click', _saveParameters);
+
+    // Animating square wave
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth = 4;
+
+    var p = 110 - (freqValueForm.value / 1000); // period
+    var o = p / (dutyValueForm.value / 250); // oscillation
+    var fps = 120;
+    var n = 0;
+    animate();
+
+    function animate() {
+        setTimeout(function () {
+            requestAnimationFrame(animate);
+
+            // Drawing code goes here
+            n += 1.5;
+            if (n > 300) {
+                n = 0;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            for (var x = 0; x < n; x++) {
+                var y = squareY(x);
+                ctx.lineTo(x, y + 50);
+            }
+            ctx.stroke();
+
+        }, 1000 / fps);
+    }
+
+    // squared sine
+    function squareY(x) {
+        var p = 110 - (freqValueForm.value / 1000); // period
+        var o = p / (dutyValueForm.value / 250); // oscillation
+        var fps = 60;
+        var n = 0;
+        return ((x % p) < o ? o : 0);
+    }
+</script>
+
+</html>
