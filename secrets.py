@@ -1,6 +1,6 @@
 # network
-SSID = "skynet"
-PWD  = "HunterH1"
+SSID = ""
+PWD  = ""
 
 # firestore
 FIRESTORE_PROJECT_ID = ""
